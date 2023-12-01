@@ -14,9 +14,9 @@ paypal.configure({
     'client_secret': process.env.PAYPAL_SECRET
 });
 
-router.post('/api/subscription/new', userAuth, async (req, res, next) => {
+router.get('/api/subscription/new', userAuth, async (req, res, next) => {
     try {
-        const plan = await PlansModel.findOne({name: req.body.planName});
+        const plan = await PlansModel.findOne({name: "Premium"});
         if(!plan){
             return res.status(400).send({error: 'Please select a valid plan to purchase'})
         }
@@ -92,7 +92,6 @@ router.get('/payment/success', userAuth, async (req, res, next) => {
                             try {
                                 const newSubscription = new SubscriptionModel({
                                     userId: req.user._id,
-                                    // userId: "6569b9a1b37ce1524049c378",
                                     paymentId,
                                     payerId,
                                     amount: transactionAmount,
