@@ -3,7 +3,7 @@ const router = express.Router();
 import PlansModel from '../Models/PlansModels.js';
 import userAuth from '../middlewares/userAuth.js';
 
-router.post('/api/plans/new', userAuth, async (req, res) => {
+router.post('/api/plans/new', userAuth, async (req, res, next) => {
     try {
         if(req.user.isAdmin === false){
             return res.status(401).send({error: 'You are unauthorized to perform this action'})
@@ -16,7 +16,7 @@ router.post('/api/plans/new', userAuth, async (req, res) => {
     }
 });
 
-router.delete('/api/plans/:id', userAuth, async (req, res) => {
+router.delete('/api/plans/:id', userAuth, async (req, res, next) => {
     try {
         if(req.user.isAdmin === false){
             return res.status(401).send({error: 'You are unauthorized to perform this action'})
@@ -31,7 +31,7 @@ router.delete('/api/plans/:id', userAuth, async (req, res) => {
     }
 });
 
-router.put('/api/plans/:id', userAuth, async (req, res) => {
+router.put('/api/plans/:id', userAuth, async (req, res, next) => {
     if(req.user.isAdmin === false){
         return res.status(401).send({error: 'You are unauthorized to perform this action'})
     }
@@ -61,7 +61,7 @@ router.put('/api/plans/:id', userAuth, async (req, res) => {
     }
 });
 
-router.get('/api/plans/all', async (req, res) => {
+router.get('/api/plans/all', async (req, res, next) => {
     try {
       const plans = await PlansModel.find({});
       res.status(200).json(plans);
@@ -71,7 +71,7 @@ router.get('/api/plans/all', async (req, res) => {
 });
 
 
-router.get('/api/plans/:id', async (req, res) => {
+router.get('/api/plans/:id', async (req, res, next) => {
     try {
       const plan = await PlansModel.findById(req.params.id);
       if (!plan) {

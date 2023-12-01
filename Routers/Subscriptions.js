@@ -3,7 +3,10 @@ const router = express.Router();
 import UserModels from '../Models/UsersModels.js';
 import userAuth from '../middlewares/userAuth.js';
 import PlansModel from '../Models/PlansModels.js';
+import SubscriptionModel from "../Models/SubscriptionsModels.js";
 import paypal from 'paypal-rest-sdk';
+import dotenv from "dotenv";
+dotenv.config();
 
 paypal.configure({
     'mode': process.env.PAYPAL_MODE,
@@ -11,9 +14,9 @@ paypal.configure({
     'client_secret': process.env.PAYPAL_SECRET
 });
 
-router.post('/api/subscription/new', userAuth, async (req, res) => {
+router.get('/api/subscription/new', async (req, res, next) => {
     try {
-        const plan = await PlansModel.findOne({name: req.body.plan, duration: req.body.duration})
+        const plan = await PlansModel.findOne({name: "Premium"})
         if(!plan){
             return res.status(400).send({error: 'Please select a valid plan to purchase'})
         }
@@ -23,7 +26,7 @@ router.post('/api/subscription/new', userAuth, async (req, res) => {
                 "payment_method": "paypal"
             },
             "redirect_urls": {
-                "return_url": `${process.env.BACKEND_URL}/payment/success`,
+                "return_url": `${process.env.BACKEND_URL}/payment/success?plan=${plan.name}`,
                 "cancel_url": `${process.env.BACKEND_URL}/payment/cancel`
             },
             "transactions": [{
@@ -60,16 +63,19 @@ router.post('/api/subscription/new', userAuth, async (req, res) => {
     }
 });
 
-router.get('/payment/success', userAuth, async (req, res) => {
+router.get('/payment/success', async (req, res, next) => {
     try {
         const payerId = req.query.PayerID;
         const paymentId = req.query.paymentId;
+        const plan = req.query.plan;
+        console.log(plan);
 
         paypal.payment.get(paymentId, function (error, payment) {
             if (error) {
                 throw new Error('Payment Failed')
             } else {
                 const transactionAmount = payment.transactions[0].amount.total;
+
 
                 const execute_payment_json = {
                     "payer_id": payerId,
@@ -81,24 +87,29 @@ router.get('/payment/success', userAuth, async (req, res) => {
                     }]
                 };
 
-                paypal.payment.execute(paymentId, execute_payment_json, function (error, payment) {
+                paypal.payment.execute(paymentId, execute_payment_json, async function (error, payment) {
                     if (error) {
                         throw error;
                     } else {
-                        req.user.subscription = plan.name;
-                        req.user.duration = plan.duration;
-                        req.user.save().then(() => {
+                        const user = await UserModels.findById("65695f029376fe84b9af291f");
+                        user.subscription = plan;
+                        user.save().then(() => {
+                            console.log(transactionAmount);
                             const newSubscription = new SubscriptionModel({
-                                user: req.user._id,
+                                // user: req.user._id,
+                                userId: "65695f029376fe84b9af291f",
                                 paymentId,
                                 payerId,
+                                amount: transactionAmount,
                             });
                             newSubscription.save().then(() => {
                                 res.send('Payment Successful');
                             }).catch((error) => {
+                                console.log(error)
                                 throw new Error({ server: 'Server Error. Please contact support.' })
                             });
                         }).catch((error) => {
+                            console.log(error);
                             throw new Error({ server: 'Server Error. Please contact support.' })
                         });
                     }
@@ -110,21 +121,24 @@ router.get('/payment/success', userAuth, async (req, res) => {
     }
 });
 
-router.get('/payment/cancel', (req, res) => res.send('Payment Cancelled'));
+router.get('/payment/cancel', (req, res, next) => res.send('Payment Cancelled'));
 
 
-router.post('/api/subscription/change', userAuth, async (req, res) => {
-    try {
-
-    } catch(error){
-
-    }
-});
-
-router.post('/api/subscription/cancel', userAuth, async (req, res) => {
+router.post('/api/subscription/change', userAuth, async (req, res, next) => {
     try {
         
     } catch(error){
 
     }
 });
+
+router.post('/api/subscription/cancel', userAuth, async (req, res, next) => {
+    try {
+        
+    } catch(error){
+
+    }
+});
+
+
+export default router;

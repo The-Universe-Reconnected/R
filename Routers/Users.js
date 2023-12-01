@@ -7,7 +7,7 @@ import userAuth from '../middlewares/userAuth.js';
 
 const router = new express.Router();
 
-router.post('/api/users/new', async (req, res) => {
+router.post('/api/users/new', async (req, res, next) => {
     try {
         const account = await UsersModels.findOne({email: req.body.email})
         if(account) {
@@ -37,7 +37,7 @@ router.post('/api/users/new', async (req, res) => {
     }
 })
 
-router.post('/api/users/login', async (req, res) => {
+router.post('/api/users/login', async (req, res, next) => {
     try {
         const user = await UsersModels.findOne({email: req.body.email})
         if(!user){
@@ -63,7 +63,7 @@ router.post('/api/users/login', async (req, res) => {
     }
 })
 
-router.patch('/api/users/update', userAuth, async (req, res) => {
+router.patch('/api/users/update', userAuth, async (req, res, next) => {
     try{
         const allowedUpdates = ['fullName', 'password', 'confirmPassword', 'email']
         const updates = Object.keys(req.body)
@@ -82,7 +82,7 @@ router.patch('/api/users/update', userAuth, async (req, res) => {
     }
 })
 
-router.delete('/api/users/delete', userAuth, async (req, res) => {
+router.delete('/api/users/delete', userAuth, async (req, res, next) => {
     try {
         await UsersModels.findByIdAndDelete(req.userId)
         res.clearCookie('token');
@@ -92,7 +92,7 @@ router.delete('/api/users/delete', userAuth, async (req, res) => {
     }
 })
 
-router.get('/api/users/data', userAuth, async (req, res) => {
+router.get('/api/users/data', userAuth, async (req, res, next) => {
     try{
         const user = req.user.toObject();
         delete user._id;
@@ -105,7 +105,7 @@ router.get('/api/users/data', userAuth, async (req, res) => {
     }
 })
 
-router.get('/api/users/logout', userAuth, async (req, res) => {
+router.get('/api/users/logout', userAuth, async (req, res, next) => {
     try {
         const token = req.cookies.token;
         const newTokens = req.user.tokens.map(value => value !== token)

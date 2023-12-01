@@ -1,5 +1,5 @@
 
-import mongoose from '../mongoose';
+import mongoose from 'mongoose';
 
 const subscriptionSchema = new mongoose.Schema({
   paymentId: {
@@ -15,7 +15,8 @@ const subscriptionSchema = new mongoose.Schema({
     required: true
   },
   userId: {
-    type: String,
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Users",
     required: true
   },
 });
