@@ -38,6 +38,11 @@ const UsersSchema = new mongoose.Schema({
     tokens:{
         type: Array,
         required: true
+    },
+    currentSubscription: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Subscription",
+        required: false
     }
 })
 

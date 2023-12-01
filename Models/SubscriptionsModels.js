@@ -19,6 +19,10 @@ const subscriptionSchema = new mongoose.Schema({
     ref: "Users",
     required: true
   },
+  expiryDate: {
+    type: Number,
+    required: true
+  }
 });
 
 const SubscriptionModels = mongoose.model('Subscription', subscriptionSchema);

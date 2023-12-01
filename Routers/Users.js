@@ -4,6 +4,8 @@ import express from 'express';
 import tokenCreator from '../utils/tokenCreator.js';
 import bcrypt from 'bcrypt';
 import userAuth from '../middlewares/userAuth.js';
+import SubscriptionModels from '../Models/SubscriptionsModels.js';
+import subscriptionExpired from '../utils/changePlan.js';
 
 const router = new express.Router();
 
@@ -48,6 +50,12 @@ router.post('/api/users/login', async (req, res, next) => {
             return res.status(400).send({passwordError: 'Password is incorrect!'})
         }
         user.tokens = tokenCreator(user._id, user.tokens)
+        const userSubscription = await SubscriptionModels.findById(user.currentSubscription);
+
+        if ( subscriptionExpired(userSubscription.expiryDate) ){
+            user.subscription = "Free";
+        }
+
         await user.save()
         const token = user.tokens[user.tokens.length - 1]
         const expirationDate = new Date();

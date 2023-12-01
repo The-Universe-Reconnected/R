@@ -14,9 +14,9 @@ paypal.configure({
     'client_secret': process.env.PAYPAL_SECRET
 });
 
-router.get('/api/subscription/new', async (req, res, next) => {
+router.post('/api/subscription/new', userAuth, async (req, res, next) => {
     try {
-        const plan = await PlansModel.findOne({name: "Premium"})
+        const plan = await PlansModel.findOne({name: req.body.planName});
         if(!plan){
             return res.status(400).send({error: 'Please select a valid plan to purchase'})
         }
@@ -63,19 +63,17 @@ router.get('/api/subscription/new', async (req, res, next) => {
     }
 });
 
-router.get('/payment/success', async (req, res, next) => {
+router.get('/payment/success', userAuth, async (req, res, next) => {
     try {
         const payerId = req.query.PayerID;
         const paymentId = req.query.paymentId;
         const plan = req.query.plan;
-        console.log(plan);
 
         paypal.payment.get(paymentId, function (error, payment) {
             if (error) {
                 throw new Error('Payment Failed')
             } else {
                 const transactionAmount = payment.transactions[0].amount.total;
-
 
                 const execute_payment_json = {
                     "payer_id": payerId,
@@ -91,27 +89,25 @@ router.get('/payment/success', async (req, res, next) => {
                     if (error) {
                         throw error;
                     } else {
-                        const user = await UserModels.findById("65695f029376fe84b9af291f");
-                        user.subscription = plan;
-                        user.save().then(() => {
-                            console.log(transactionAmount);
-                            const newSubscription = new SubscriptionModel({
-                                // user: req.user._id,
-                                userId: "65695f029376fe84b9af291f",
-                                paymentId,
-                                payerId,
-                                amount: transactionAmount,
-                            });
-                            newSubscription.save().then(() => {
-                                res.send('Payment Successful');
-                            }).catch((error) => {
-                                console.log(error)
+                            try {
+                                const newSubscription = new SubscriptionModel({
+                                    userId: req.user._id,
+                                    // userId: "6569b9a1b37ce1524049c378",
+                                    paymentId,
+                                    payerId,
+                                    amount: transactionAmount,
+                                    expiryDate: Date.now() + 2592000000
+                                });
+        
+                                const newSub = await newSubscription.save()
+                                const user = await UserModels.findById(req.user._id);
+                                user.subscription = plan;
+                                user.currentSubscription = newSub._id;
+                                await user.save()
+                                res.send('Payment Successful');    
+                            } catch (error) {
                                 throw new Error({ server: 'Server Error. Please contact support.' })
-                            });
-                        }).catch((error) => {
-                            console.log(error);
-                            throw new Error({ server: 'Server Error. Please contact support.' })
-                        });
+                            }
                     }
                 });
             }
@@ -126,7 +122,14 @@ router.get('/payment/cancel', (req, res, next) => res.send('Payment Cancelled'))
 
 router.post('/api/subscription/change', userAuth, async (req, res, next) => {
     try {
-        
+        // const userId = req.user._id;
+        const userId = req.user._id;
+        const user = await UserModels.findById(userId);
+        const plan = user.subscription;
+        if(plan === "Premium"){
+            
+        }
+        res.status(200).json({message: plan});
     } catch(error){
 
     }
@@ -134,7 +137,6 @@ router.post('/api/subscription/change', userAuth, async (req, res, next) => {
 
 router.post('/api/subscription/cancel', userAuth, async (req, res, next) => {
     try {
-        
     } catch(error){
 
     }
