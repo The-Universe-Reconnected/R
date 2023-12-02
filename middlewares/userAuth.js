@@ -27,7 +27,6 @@ const userAuth = async (req, res, next) => {
         }
         return next()
     } catch (error) {
-        console.log(error)
         return res.status(401).send({error: 'You are unauthorized to perform this action'})
     }
 }

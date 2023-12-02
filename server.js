@@ -10,10 +10,9 @@ import connectDB from './mongoose.js';
 
 const app = express();
 
-connectDB()
 
 // const corsOptions = cors({
-//     origin: true,
+    //     origin: true,
 //     credentials: true
 // })
 // app.options('*', cors(corsOptions));
@@ -28,7 +27,8 @@ app.use(SubscriptionRouter);
 const PORT = process.env.PORT || 3000;
 
 
-app.listen(PORT, () => {
+app.listen(PORT, async() => {
+    await connectDB()
     console.log(`App listening on port ${PORT}!`);
 });
 

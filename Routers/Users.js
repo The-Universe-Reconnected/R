@@ -92,12 +92,12 @@ router.patch('/api/users/update', userAuth, async (req, res, next) => {
 
 router.delete('/api/users/delete', userAuth, async (req, res, next) => {
     try {
-        await UsersModels.findByIdAndDelete(req.userId)
+        await UsersModels.findByIdAndDelete(req.body.userId)
         res.clearCookie('token');
         return res.status(200).send('Your account is deleted successfully!')
     } catch (error) {
         return res.status(500).send({error: 'Server Error'})
-    }
+    }``
 })
 
 router.get('/api/users/data', userAuth, async (req, res, next) => {
