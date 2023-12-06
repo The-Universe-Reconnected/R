@@ -25,10 +25,6 @@ router.get('/api/subscription/new', userAuth, async (req, res, next) => {
             "payer": {
                 "payment_method": "paypal"
             },
-            "redirect_urls": {
-                "return_url": `${process.env.BACKEND_URL}/payment/success?plan=${plan.name}`,
-                "cancel_url": `${process.env.BACKEND_URL}/payment/cancel`
-            },
             "transactions": [{
                 "item_list": {
                     "items": [{
